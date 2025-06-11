@@ -4,9 +4,20 @@
 
   Once you've implemented the logic, test your code by running
 */
-
+const prompt = require('prompt-sync')();
 function countVowels(str) {
-    // Your code here
+  let count = 0;
+  let vowels = "aeiouAEIOU";
+
+  for (let i = 0; i < str.length; i++) {
+    if (vowels.includes(str[i])) {
+      count++;
+    }
+  }
+
+  return count;
 }
 
-module.exports = countVowels;
+let inputstr = prompt("Enter a string:");
+let vowelCount = countVowels(inputstr);
+console.log("Number of vowels=", vowelCount);
