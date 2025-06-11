@@ -19,14 +19,12 @@ let str2Arr=str2.split('').sort();
 
 for(i=0;i<str1Arr.length;i++)
 {
-  if(str1Arr[i]==str2Arr[i]){
-    return true;
+  if(str1Arr[i]!==str2Arr[i]){
+    return false;
   }
 }
 
-return false;
-
+return true;
 }
-
 
 module.exports = isAnagram;
