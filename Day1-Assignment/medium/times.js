@@ -21,7 +21,7 @@ function calculateTime(n) {
   console.log("Sum from 1 to " + n + " is: " + sum);
   console.log("Time taken: " + timeTaken + " seconds");
 }
-let input = prompt("Enter the value of n:");
+let input = prompt("Enter the value of n:");  //100  or 100000 or 1000000000
 let n = parseInt(input);
 
 if (typeof n === 'number' && n > 0)
