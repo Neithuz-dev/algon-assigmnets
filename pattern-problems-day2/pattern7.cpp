@@ -1,12 +1,21 @@
 #include<iostream>
-    void pattern6(int n)
+    void pattern7(int n)
     {
         for(int i=0;i<n;i++)
         {
-            for(int j=n;j>i;j--)
+            for(int j=0;j<n-i-1;j++)
             {
-                std::cout<<n-j+1;
+                std::cout<<" ";
             }
+            for(int j=0;j< 2*i+1;j++)
+            {
+            
+            std::cout<<"*";
+        }
+         for (int j =0; j<n-i-1; j++)
+        {
+            std::cout <<" ";
+        }
             std::cout<<"\n";
         }
     }
@@ -15,6 +24,6 @@
         int n;
         std::cout<<"enter the value of n:";
         std::cin>>n;
-        pattern6(n);
+        pattern7(n);
         return(0);
     }
