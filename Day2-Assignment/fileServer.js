@@ -21,38 +21,39 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 
-const app=express();
+const app = express();
+const filesDir = path.join(__dirname, 'files');
 
 
-
-app.get('/files',(req,res)=>{
-  fs.readdir(path.join(__dirname,'./files'),(err,data)=>{
-    if(err){
-      res.status(500).send("Error")
-      return;
+app.get('/files', (req, res) => {
+  fs.readdir(filesDir, (err, files) => {
+    if (err) {
+      return res.status(500).send('Internal Server Error');
     }
-
-    res.send(data);
-  })
-})
-
-
-app.get('/files/:filename',(req,res)=>{
-  const pathy = path.join(__dirname,'./files',req.params.filename)
-  fs.readFile(pathy,'utf-8',(err,data)=>{
-      res.send(data);
-  })
-})
-
-app.all('*',(req,res)=>{
-  res.status(404).send("<h1>Hola Error Man</h1>")
-})
+    res.status(200).json(files); 
+  });
+});
 
 
-app.listen(3000,(req,res)=>{
-  console.log("server running")
-})
+app.get('/file/:filename', (req, res) => {
+  const filePath = path.join(filesDir, req.params.filename);
 
 
+  if (!filePath.startsWith(filesDir)) {
+    return res.status(400).send('Invalid file path');
+  }
+
+  fs.readFile(filePath, 'utf-8', (err, data) => {
+    if (err) {
+      return res.status(404).send('File not found');
+    }
+    res.status(200).send(data); 
+  });
+});
+
+
+app.all('*', (req, res) => {
+  res.status(404).send('Route not found');
+});
 
 module.exports = app;
