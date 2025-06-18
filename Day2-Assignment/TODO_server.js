@@ -1,5 +1,4 @@
-const app = require('./app');
-
+const app = require('./todoServer');
 const PORT = 3000;
 
 app.listen(PORT, () => {

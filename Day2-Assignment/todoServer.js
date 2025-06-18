@@ -39,76 +39,94 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-  const express = require('express');
-  const bodyParser = require('body-parser');
-  const fs =require('fs');
-  
-  const app = express();
-  const FILE_PATH ='todo.json';
+const express = require('express');
+const fs = require('fs');
+const bodyParser = require('body-parser');
+const path = require('path');
+const { v4: uuidv4 } = require('uuid');
 
-  app.use(bodyParser.json());
-  let todos = [];
-  if (fs.existsSync(FILE_PATH)) 
-    {
-  const data = fs.readFileSync(FILE_PATH, 'utf8');
-  todos = JSON.parse(data);
-    }
-  function saveTodosToFile() 
-   {
-  fs.writeFileSync(FILE_PATH, JSON.stringify(todos, null, 2));
-   }
-   function generateId()
-   {
-  return Date.now().toString();
-   }
-    app.get('/todos', (req, res) => {
-  res.status(200).json(todos);
-   });
-    app.get('/todos/:id', (req, res) => {
-  const todo = todos.find(t => t.id === req.params.id);
-  if (todo) {
-    res.status(200).json(todo);
-  } else {
-    res.status(404).send('Todo not found');
+const app = express();
+app.use(bodyParser.json());
+
+const FILE_PATH = path.join(__dirname, 'todo.json');
+
+let todos = [];
+if (fs.existsSync(FILE_PATH)) {
+  try {
+    const data = fs.readFileSync(FILE_PATH, 'utf8');
+    todos = JSON.parse(data);
+  } catch (err) {
+    console.error("Error reading todo.json:", err);
   }
-   });
-      app.post('/todos', (req, res) => {
+}
+
+function saveTodosToFile() {
+  fs.writeFileSync(FILE_PATH, JSON.stringify(todos, null, 2));
+}
+
+app.get('/todos', (req, res) => {
+  res.status(200).json(todos);
+});
+
+
+app.get('/todos/:id', (req, res) => {
+  const todo = todos.find(t => t.id === req.params.id);
+  if (!todo) {
+    return res.status(404).send('Todo not found');
+  } else {
+    res.status(200).json(todo);
+  }
+});
+
+
+app.post('/todos', (req, res) => {
   const { title, description, completed = false } = req.body;
+  if (!title || !description) {
+    return res.status(400).send('Title and description are required');
+  }
+
   const newTodo = {
-    id: generateId(),
+    id: uuidv4(),
     title,
     description,
     completed
   };
+
   todos.push(newTodo);
   saveTodosToFile();
   res.status(201).json({ id: newTodo.id });
-  });
-  app.put('/todos/:id', (req, res) => {
+});
+
+
+app.put('/todos/:id', (req, res) => {
   const todo = todos.find(t => t.id === req.params.id);
-  if (todo) {
-    const { title, description, completed } = req.body;
-    if (title !== undefined) todo.title = title;
-    if (description !== undefined) todo.description = description;
-    if (completed !== undefined) todo.completed = completed;
-    saveTodosToFile();
-    res.status(200).send('Todo updated');
-  } else {
-    res.status(404).send('Todo not found');
+  if (!todo) {
+    return res.status(404).send('Todo not found');
   }
-  });
-   app.delete('/todos/:id', (req, res) => {
+
+  const { title, description, completed } = req.body;
+  if (title !== undefined) todo.title = title;
+  if (description !== undefined) todo.description = description;
+  if (completed !== undefined) todo.completed = completed;
+
+  saveTodosToFile();
+  res.status(200).json(todo);
+});
+
+
+app.delete('/todos/:id', (req, res) => {
   const index = todos.findIndex(t => t.id === req.params.id);
-  if (index !== -1) {
-    todos.splice(index, 1);
-    saveTodosToFile();
-    res.status(200).send('Todo deleted');
-  } else {
-    res.status(404).send('Todo not found');
+  if (index === -1) {
+    return res.status(404).send('Todo not found');
   }
-  });
-  app.use((req, res) => {
-  res.status(404).send('Route not found');
-   });
-  
-  module.exports = app;
+
+  todos.splice(index, 1);
+  saveTodosToFile();
+  res.status(200).send('Todo deleted');
+});
+
+app.use((req, res) => {
+  res.status(404).send('Route not found--------');
+});
+
+module.exports = app;
