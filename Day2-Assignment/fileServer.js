@@ -17,43 +17,55 @@
 // const path = require('path');
 // const app = express();
 
-const express = require('express');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const url = require('url');
 
-const app = express();
-const filesDir = path.join(__dirname, 'files');
+const PORT = 3000;
+
+const server = http.createServer((req, res) => {
+  const parsedUrl = url.parse(req.url, true);
+  const pathname = parsedUrl.pathname;
+
+  
+  if (req.method === 'GET' && pathname === '/files') {
+    const folderPath = path.join(__dirname, 'files');
+
+    fs.readdir(folderPath, (err, files) => {
+      if (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Failed to read directory' }));
+        return;
+      }
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(files));
+    });
 
 
-app.get('/files', (req, res) => {
-  fs.readdir(filesDir, (err, files) => {
-    if (err) {
-      return res.status(500).send('Internal Server Error');
-    }
-    res.status(200).json(files); 
-  });
-});
+  } else if (req.method === 'GET' && pathname.startsWith('/file/')) {
+    const filename = pathname.replace('/file/', '');
+    const filePath = path.join(__dirname, 'files', filename);
+
+    fs.readFile(filePath, 'utf8', (err, data) => {
+      if (err) {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('File not found');
+        return;
+      }
+
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      res.end(data);
+    });
 
 
-app.get('/file/:filename', (req, res) => {
-  const filePath = path.join(filesDir, req.params.filename);
-
-
-  if (!filePath.startsWith(filesDir)) {
-    return res.status(400).send('Invalid file path');
+  } else {
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('Route not found');
   }
-
-  fs.readFile(filePath, 'utf-8', (err, data) => {
-    if (err) {
-      return res.status(404).send('File not found');
-    }
-    res.status(200).send(data); 
-  });
 });
 
-
-app.all('*', (req, res) => {
-  res.status(404).send('Route not found');
+server.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
 });
-
-module.exports = app;
